@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="bi bi-book text-3xl text-blue-600"></i>
+                    <span class="ml-2 text-xl font-semibold">Library Management System</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-full hover:bg-gray-100">
+                        <i class="bi bi-bell text-xl"></i>
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-gray-100">
+                        <i class="bi bi-person-circle text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="stat-card bg-white p-6 rounded-lg shadow-md">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">Total Books</p>
+                        <h3 class="text-2xl font-bold" id="totalBooks">0</h3>
+                    </div>
+                    <i class="bi bi-journal-text text-3xl text-blue-600"></i>
+                </div>
+            </div>
+            <div class="stat-card bg-white p-6 rounded-lg shadow-md">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">Books on Rent</p>
+                        <h3 class="text-2xl font-bold" id="rentedBooks">0</h3>
+                    </div>
+                    <i class="bi bi-journal-arrow-up text-3xl text-green-600"></i>
+                </div>
+            </div>
+            <div class="stat-card bg-white p-6 rounded-lg shadow-md">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500">Overdue Books</p>
+                        <h3 class="text-2xl font-bold" id="overdueBooks">0</h3>
+                    </div>
+                    <i class="bi bi-journal-x text-3xl text-red-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Management Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Book Management</h2>
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <input type="text" id="bookTitle" placeholder="Book Title" class="flex-1 p-2 border rounded">
+                <input type="text" id="author" placeholder="Author" class="flex-1 p-2 border rounded">
+                <button onclick="addBook()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Add Book</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full" id="bookTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="bookList"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let books = [];
+        let bookId = 1;
+
+        // Initialize with some sample data
+        window.onload = () => {
+            addSampleBooks();
+            updateStats();
+        };
+
+        function addSampleBooks() {
+            const sampleBooks = [
+                { id: bookId++, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', status: 'Available' },
+                { id: bookId++, title: '1984', author: 'George Orwell', status: 'Rented' },
+                { id: bookId++, title: 'To Kill a Mockingbird', author: 'Harper Lee', status: 'Overdue' }
+            ];
+            books = [...sampleBooks];
+            updateBookList();
+        }
+
+        function addBook() {
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('author').value;
+            
+            if (!title || !author) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const newBook = {
+                id: bookId++,
+                title,
+                author,
+                status: 'Available'
+            };
+
+            books.push(newBook);
+            updateBookList();
+            updateStats();
+
+            // Clear inputs
+            document.getElementById('bookTitle').value = '';
+            document.getElementById('author').value = '';
+        }
+
+        function toggleStatus(id) {
+            const book = books.find(b => b.id === id);
+            const statuses = ['Available', 'Rented', 'Overdue'];
+            const currentIndex = statuses.indexOf(book.status);
+            book.status = statuses[(currentIndex + 1) % statuses.length];
+            updateBookList();
+            updateStats();
+        }
+
+        function deleteBook(id) {
+            books = books.filter(b => b.id !== id);
+            updateBookList();
+            updateStats();
+        }
+
+        function updateBookList() {
+            const bookList = document.getElementById('bookList');
+            bookList.innerHTML = books.map(book => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">${book.title}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${book.author}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${book.status === 'Available' ? 'bg-green-100 text-green-800' : 
+                            book.status === 'Rented' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-red-100 text-red-800'}">
+                            ${book.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button onclick="toggleStatus(${book.id})" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                        <button onclick="deleteBook(${book.id})" class="text-red-600 hover:text-red-900">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalBooks').textContent = books.length;
+            document.getElementById('rentedBooks').textContent = 
+                books.filter(b => b.status === 'Rented').length;
+            document.getElementById('overdueBooks').textContent = 
+                books.filter(b => b.status === 'Overdue').length;
+        }
+    </script>
+</body>
+</html>
